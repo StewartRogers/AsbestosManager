@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertApplicationSchema, updateApplicationStatusSchema } from "@shared/schema";
+import { insertApplicationSchema, updateApplicationStatusSchema, insertTriagingChecklistSchema } from "@shared/schema";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -82,10 +82,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let applications;
       if (user?.role === 'administrator') {
-        const { status, licenseType, search } = req.query;
+        const { status, applicationType, search } = req.query;
         applications = await storage.getAllApplications({
           status: status as string,
-          licenseType: licenseType as string,
+          applicationType: applicationType as string,
           search: search as string,
         });
       } else {
@@ -262,6 +262,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Triaging Checklist routes
+  app.post('/api/applications/:id/triaging-checklist', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'administrator') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+      
+      const checklistData = insertTriagingChecklistSchema.parse(req.body);
+      
+      // Check if checklist already exists
+      const existing = await storage.getTriagingChecklist(req.params.id);
+      let checklist;
+      
+      if (existing) {
+        checklist = await storage.updateTriagingChecklist(req.params.id, checklistData);
+      } else {
+        checklist = await storage.createTriagingChecklist({
+          ...checklistData,
+          applicationId: req.params.id,
+        });
+      }
+      
+      res.json(checklist);
+    } catch (error) {
+      console.error("Error saving triaging checklist:", error);
+      res.status(400).json({ message: "Failed to save triaging checklist" });
+    }
+  });
+
+  app.get('/api/triaging-checklist/:applicationId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'administrator') {
+        return res.status(403).json({ message: "Access denied. Admin role required." });
+      }
+      
+      const checklist = await storage.getTriagingChecklist(req.params.applicationId);
+      res.json(checklist || {});
+    } catch (error) {
+      console.error("Error fetching triaging checklist:", error);
+      res.status(500).json({ message: "Failed to fetch triaging checklist" });
     }
   });
 

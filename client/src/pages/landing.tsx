@@ -16,12 +16,20 @@ export default function Landing() {
                 <p className="text-sm text-gray-600">Asbestos License Management System</p>
               </div>
             </div>
-            <Button 
-              onClick={() => window.location.href = '/api/login'}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Sign In
-            </Button>
+            <div className="flex items-center space-x-4">
+              <a
+                href="/api/login"
+                className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+              >
+                Admin Sign In
+              </a>
+              <Button 
+                onClick={() => window.location.href = '/api/login'}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Sign In
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -88,13 +96,23 @@ export default function Landing() {
           <p className="text-gray-600 mb-6">
             Sign in to submit your asbestos license application or manage existing applications.
           </p>
-          <Button 
-            onClick={() => window.location.href = '/api/login'}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Sign In to Continue
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={() => window.location.href = '/api/login'}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Employer Sign In
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/api/login'}
+              size="lg"
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              Administrator Sign In
+            </Button>
+          </div>
         </div>
       </main>
 

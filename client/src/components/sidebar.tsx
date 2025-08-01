@@ -1,93 +1,97 @@
-import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { Shield, FileText, BarChart3, Settings, LogOut, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Shield, BarChart3, FileText, PlusCircle, ClipboardCheck, Database, FileBarChart, LogOut } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export default function Sidebar() {
   const { user } = useAuth();
   const [location] = useLocation();
 
-  const isActive = (path: string) => {
-    return location === path || location.startsWith(path);
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
+  const userRole = (user as any)?.role || 'employer';
 
   const employerNavItems = [
     { path: "/dashboard", label: "Dashboard", icon: BarChart3 },
-    { path: "/applications", label: "My Applications", icon: FileText },
-    { path: "/applications/new", label: "New Application", icon: PlusCircle },
+    { path: "/applications/new", label: "New Application", icon: FileText },
   ];
 
   const adminNavItems = [
-    { path: "/dashboard", label: "Admin Dashboard", icon: BarChart3 },
-    { path: "/review-queue", label: "Review Queue", icon: ClipboardCheck },
-    { path: "/applications", label: "All Applications", icon: Database },
-    { path: "/reports", label: "Reports", icon: FileBarChart },
+    { path: "/admin", label: "Admin Dashboard", icon: Users },
+    { path: "/dashboard", label: "Applications", icon: FileText },
   ];
 
-  const navItems = user?.role === 'administrator' ? adminNavItems : employerNavItems;
+  const navItems = userRole === 'administrator' ? adminNavItems : employerNavItems;
 
   return (
-    <div className="w-64 bg-slate-800 text-white flex-shrink-0 hidden lg:block">
-      <div className="p-6">
-        {/* Logo */}
-        <div className="flex items-center mb-8">
-          <Shield className="text-2xl mr-3" />
+    <div className="w-64 bg-white border-r border-gray-200 h-screen flex flex-col">
+      {/* Logo */}
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex items-center">
+          <Shield className="h-8 w-8 text-blue-600 mr-3" />
           <div>
-            <h1 className="text-lg font-semibold">ALMS</h1>
-            <p className="text-xs text-gray-300">License Management</p>
+            <h1 className="text-lg font-bold text-gray-900">ALMS</h1>
+            <p className="text-sm text-gray-600">Asbestos License Management</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location === item.path;
+          
+          return (
+            <Link key={item.path} href={item.path}>
+              <div
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <Icon className="h-5 w-5 mr-3" />
+                {item.label}
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* User Info */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center mb-4">
+          <div className="flex-shrink-0">
+            {(user as any)?.profileImageUrl ? (
+              <img
+                className="h-10 w-10 rounded-full object-cover"
+                src={(user as any).profileImageUrl}
+                alt="Profile"
+              />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <User className="h-6 w-6 text-blue-600" />
+              </div>
+            )}
+          </div>
+          <div className="ml-3 min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900 truncate">
+              {(user as any)?.firstName && (user as any)?.lastName
+                ? `${(user as any).firstName} ${(user as any).lastName}`
+                : (user as any)?.email || 'User'}
+            </p>
+            <p className="text-xs text-gray-500 capitalize">
+              {(user as any)?.role || 'Employer'}
+            </p>
           </div>
         </div>
         
-        {/* Navigation */}
-        <nav className="space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link key={item.path} href={item.path}>
-                <a
-                  className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:text-white hover:bg-gray-700"
-                  }`}
-                >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.label}
-                </a>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-      
-      {/* User Profile & Logout */}
-      <div className="absolute bottom-0 w-64 p-6 border-t border-gray-600">
-        <div className="flex items-center mb-4">
-          <div 
-            className="w-10 h-10 bg-gray-500 rounded-full mr-3 bg-cover bg-center"
-            style={{
-              backgroundImage: user?.profileImageUrl ? `url(${user.profileImageUrl})` : undefined
-            }}
-          />
-          <div>
-            <p className="font-medium">
-              {user?.firstName} {user?.lastName}
-            </p>
-            <p className="text-xs text-gray-300 capitalize">
-              {user?.role || 'User'}
-            </p>
-          </div>
-        </div>
         <Button
-          onClick={handleLogout}
-          variant="ghost"
-          className="w-full justify-start text-gray-300 hover:text-white hover:bg-gray-700"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => window.location.href = '/api/logout'}
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="h-4 w-4 mr-2" />
           Sign Out
         </Button>
       </div>

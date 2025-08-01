@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import ApplicationForm from "@/pages/application-form";
 import ApplicationDetails from "@/pages/application-details";
 import AdminDashboard from "@/pages/admin-dashboard";
+import TriagingChecklist from "@/pages/triaging-checklist";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -28,10 +29,11 @@ function Router() {
         <Route path="/" component={Landing} />
       ) : (
         <>
-          <Route path="/" component={user?.role === 'administrator' ? AdminDashboard : Dashboard} />
-          <Route path="/dashboard" component={user?.role === 'administrator' ? AdminDashboard : Dashboard} />
+          <Route path="/" component={(user as any)?.role === 'administrator' ? AdminDashboard : Dashboard} />
+          <Route path="/dashboard" component={(user as any)?.role === 'administrator' ? AdminDashboard : Dashboard} />
           <Route path="/applications/new" component={ApplicationForm} />
           <Route path="/applications/:id" component={ApplicationDetails} />
+          <Route path="/applications/:id/triaging" component={TriagingChecklist} />
           <Route path="/admin" component={AdminDashboard} />
         </>
       )}

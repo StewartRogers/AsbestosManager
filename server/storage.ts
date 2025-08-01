@@ -2,6 +2,7 @@ import {
   users,
   applications,
   documents,
+  triagingChecklists,
   type User,
   type UpsertUser,
   type InsertApplication,
@@ -9,6 +10,8 @@ import {
   type ApplicationWithDetails,
   type InsertDocument,
   type Document,
+  type InsertTriagingChecklist,
+  type TriagingChecklist,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike } from "drizzle-orm";
@@ -23,13 +26,18 @@ export interface IStorage {
   updateApplication(id: string, application: Partial<InsertApplication>): Promise<Application>;
   getApplication(id: string): Promise<ApplicationWithDetails | undefined>;
   getUserApplications(userId: string): Promise<ApplicationWithDetails[]>;
-  getAllApplications(filters?: { status?: string; licenseType?: string; search?: string }): Promise<ApplicationWithDetails[]>;
+  getAllApplications(filters?: { status?: string; applicationType?: string; search?: string }): Promise<ApplicationWithDetails[]>;
   updateApplicationStatus(id: string, status: string, reviewComments?: string, reviewerId?: string): Promise<Application>;
   
   // Document operations
   createDocument(document: InsertDocument): Promise<Document>;
   getApplicationDocuments(applicationId: string): Promise<Document[]>;
   deleteDocument(id: string): Promise<void>;
+  
+  // Triaging Checklist operations
+  createTriagingChecklist(checklist: InsertTriagingChecklist): Promise<TriagingChecklist>;
+  updateTriagingChecklist(applicationId: string, checklist: Partial<InsertTriagingChecklist>): Promise<TriagingChecklist>;
+  getTriagingChecklist(applicationId: string): Promise<TriagingChecklist | undefined>;
   
   // Statistics
   getApplicationStats(userId?: string): Promise<{
@@ -58,11 +66,15 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values({
+        ...userData,
+        role: userData.role || 'employer', // Default to employer role
+      })
       .onConflictDoUpdate({
         target: users.id,
         set: {
           ...userData,
+          role: userData.role || 'employer',
           updatedAt: new Date(),
         },
       })
@@ -72,9 +84,15 @@ export class DatabaseStorage implements IStorage {
 
   // Application operations
   async createApplication(applicationData: InsertApplication & { userId: string }): Promise<Application> {
+    // Generate application reference number
+    const refNumber = 'ALM-' + Date.now().toString().slice(-8) + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+    
     const [application] = await db
       .insert(applications)
-      .values(applicationData)
+      .values({
+        ...applicationData,
+        applicationRefNumber: refNumber,
+      })
       .returning();
     return application;
   }
@@ -141,8 +159,8 @@ export class DatabaseStorage implements IStorage {
     return Array.from(applicationMap.values());
   }
 
-  async getAllApplications(filters?: { status?: string; licenseType?: string; search?: string }): Promise<ApplicationWithDetails[]> {
-    let query = db
+  async getAllApplications(filters?: { status?: string; applicationType?: string; search?: string }): Promise<ApplicationWithDetails[]> {
+    let baseQuery = db
       .select()
       .from(applications)
       .leftJoin(users, eq(applications.userId, users.id))
@@ -154,25 +172,25 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(applications.status, filters.status as any));
     }
 
-    if (filters?.licenseType) {
-      conditions.push(eq(applications.licenseType, filters.licenseType as any));
+    if (filters?.applicationType) {
+      conditions.push(eq(applications.applicationType, filters.applicationType as any));
     }
 
     if (filters?.search) {
       conditions.push(
         or(
-          ilike(applications.companyName, `%${filters.search}%`),
-          ilike(applications.primaryContactName, `%${filters.search}%`),
-          ilike(applications.email, `%${filters.search}%`)
+          ilike(applications.applicationRefNumber, `%${filters.search}%`),
+          ilike(applications.ownerContactInfo, `%${filters.search}%`),
+          ilike(applications.asbestosServicesDescription, `%${filters.search}%`)
         )
       );
     }
 
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      baseQuery = baseQuery.where(and(...conditions));
     }
 
-    const result = await query.orderBy(desc(applications.createdAt));
+    const result = await baseQuery.orderBy(desc(applications.createdAt));
 
     const applicationMap = new Map<string, ApplicationWithDetails>();
 
@@ -232,6 +250,32 @@ export class DatabaseStorage implements IStorage {
     await db.delete(documents).where(eq(documents.id, id));
   }
 
+  // Triaging Checklist operations
+  async createTriagingChecklist(checklistData: InsertTriagingChecklist): Promise<TriagingChecklist> {
+    const [checklist] = await db
+      .insert(triagingChecklists)
+      .values(checklistData)
+      .returning();
+    return checklist;
+  }
+
+  async updateTriagingChecklist(applicationId: string, checklistData: Partial<InsertTriagingChecklist>): Promise<TriagingChecklist> {
+    const [checklist] = await db
+      .update(triagingChecklists)
+      .set({ ...checklistData, updatedAt: new Date() })
+      .where(eq(triagingChecklists.applicationId, applicationId))
+      .returning();
+    return checklist;
+  }
+
+  async getTriagingChecklist(applicationId: string): Promise<TriagingChecklist | undefined> {
+    const [checklist] = await db
+      .select()
+      .from(triagingChecklists)
+      .where(eq(triagingChecklists.applicationId, applicationId));
+    return checklist;
+  }
+
   // Statistics
   async getApplicationStats(userId?: string): Promise<{
     total: number;
@@ -240,13 +284,13 @@ export class DatabaseStorage implements IStorage {
     rejected: number;
     draft: number;
   }> {
-    let query = db.select().from(applications);
+    let baseQuery = db.select().from(applications);
     
     if (userId) {
-      query = query.where(eq(applications.userId, userId));
+      baseQuery = baseQuery.where(eq(applications.userId, userId));
     }
 
-    const allApplications = await query;
+    const allApplications = await baseQuery;
 
     return {
       total: allApplications.length,

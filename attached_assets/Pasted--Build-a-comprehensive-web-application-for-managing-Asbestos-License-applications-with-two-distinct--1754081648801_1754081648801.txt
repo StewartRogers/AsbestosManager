@@ -1,0 +1,78 @@
+ Build a comprehensive web application for managing Asbestos License applications with two distinct user workflows: Employer submission and Administrator review.
+
+## Core Features & User Flows
+
+### 1. Authentication & Navigation
+- Main "Sign In" button for employers
+- "Admin Sign In" text link in navigation bar for administrators
+- Separate login flows for each user type
+- Test accounts needed for both employer and admin access
+
+### 2. Employer Workflow
+- **Sign-in/Registration**: Secure employer authentication
+- **Application Form** with the following required fields:
+  - Application type: New Application or Renewal Application (radio buttons)
+  - Number of workers at the firm
+  - Number of workers with asbestos abatement certificates
+  - Owner contact information
+  - Description of asbestos services provided
+- **My Applications Page**:
+  - Display submitted applications
+  - Show auto-generated Application Reference Numbers for each submission
+  - Application status tracking
+
+### 3. Administrator Workflow
+- **Admin Dashboard**: View all submitted applications
+- **Application Triaging Checklist** (replaces "Application vs Internal Data Comparison")
+
+#### Application Triaging Checklist Structure:
+**Section 1 - Decision Fields:**
+- Date of Decision
+- Decision
+- Application Reference #
+- Prepared By
+- Job Title
+
+**Section 2 - Employer Information:**
+- Employer Legal Name
+- Employer Trade Name
+- Employer ID
+- Active Status
+- Account Coverage
+- Firm Type
+- Employer Start Date
+- Classification Unit(s)
+- Employer-CU Start Date
+- Overdue Balance
+- Current Account Balance
+
+**Section 3 - Review Checklist:**
+- BC Company Summary
+- Is applicant in scope?
+- Classification unit (CU) related to scope of asbestos work
+- Review (if applicable) Amounts owing Overdue balance Payment plan information Collection Department legal action
+- Review number of workers employed
+- Review certified workers provided/verified
+- LAT (screen capture)
+- Review LAT for possible escalation
+- Review Injunction violation/s
+- Review Referrals from PFS
+- Review renewals for consistency with previous application
+- Review associated firms/persons information (if applicable)
+- Has NOP-Hazard (NOPH) information
+- Transport ACMS
+
+## Technical Requirements
+- Responsive web design
+- Secure user authentication with role-based access
+- Auto-generation of unique Application Reference Numbers
+- Data persistence for applications and reviews
+- Form validation and error handling
+- Clean, professional UI suitable for government/regulatory use
+
+## Testing Setup
+Provide sample login credentials for:
+- Test employer account
+- Test administrator account
+
+Build this as a complete, functional prototype with realistic styling and data handling

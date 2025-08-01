@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState, useRef } from "react";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
 import { Upload, X, FileText } from "lucide-react";
 
 interface FileUploadProps {
@@ -18,32 +18,41 @@ export default function FileUpload({
 }: FileUploadProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFiles = useCallback((newFiles: FileList | null) => {
+  const handleFiles = (newFiles: FileList | null) => {
     if (!newFiles) return;
 
     const validFiles: File[] = [];
-    const fileArray = Array.from(newFiles);
+    const errors: string[] = [];
 
-    for (const file of fileArray) {
+    Array.from(newFiles).forEach((file) => {
+      // Check file size
       if (file.size > maxSize) {
-        alert(`File ${file.name} is too large. Maximum size is ${maxSize / 1024 / 1024}MB.`);
-        continue;
+        errors.push(`${file.name} is too large. Maximum size is ${Math.round(maxSize / 1024 / 1024)}MB`);
+        return;
       }
 
-      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      if (!accept.includes(extension)) {
-        alert(`File ${file.name} has an invalid type. Accepted types: ${accept}`);
-        continue;
+      // Check file type
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const allowedExtensions = accept.split(',').map(ext => ext.trim().replace('.', ''));
+      
+      if (!extension || !allowedExtensions.includes(extension)) {
+        errors.push(`${file.name} has an invalid file type. Allowed types: ${accept}`);
+        return;
       }
 
       validFiles.push(file);
+    });
+
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
     }
 
-    const updatedFiles = multiple ? [...files, ...validFiles] : validFiles.slice(0, 1);
+    const updatedFiles = multiple ? [...files, ...validFiles] : validFiles;
     setFiles(updatedFiles);
     onFilesChange(updatedFiles);
-  }, [files, maxSize, accept, multiple, onFilesChange]);
+  };
 
   const removeFile = (index: number) => {
     const updatedFiles = files.filter((_, i) => i !== index);
@@ -51,7 +60,7 @@ export default function FileUpload({
     onFilesChange(updatedFiles);
   };
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") {
@@ -59,31 +68,33 @@ export default function FileUpload({
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []);
+  };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+
+    if (e.dataTransfer.files) {
       handleFiles(e.dataTransfer.files);
     }
-  }, [handleFiles]);
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
-    }
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
     <div className="space-y-4">
+      {/* Upload Area */}
       <Card
         className={`border-2 border-dashed transition-colors ${
-          dragActive 
-            ? "border-blue-400 bg-blue-50" 
+          dragActive
+            ? "border-blue-500 bg-blue-50"
             : "border-gray-300 hover:border-gray-400"
         }`}
         onDragEnter={handleDrag}
@@ -91,52 +102,65 @@ export default function FileUpload({
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <CardContent className="p-6 text-center">
+        <CardContent className="p-8 text-center">
           <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <p className="text-sm text-gray-600 mb-2">
-            Click to upload or drag and drop
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Upload Documents
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Drag and drop your files here, or click to browse
           </p>
           <p className="text-xs text-gray-500 mb-4">
-            {accept.toUpperCase().replace(/\./g, '')} files (Max {maxSize / 1024 / 1024}MB each)
+            Supported formats: {accept} (Max size: {Math.round(maxSize / 1024 / 1024)}MB)
           </p>
-          <input
-            type="file"
-            multiple={multiple}
-            accept={accept}
-            onChange={handleChange}
-            className="hidden"
-            id="file-upload"
-          />
-          <Button asChild variant="outline">
-            <label htmlFor="file-upload" className="cursor-pointer">
-              Choose Files
-            </label>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Browse Files
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={accept}
+            multiple={multiple}
+            onChange={(e) => handleFiles(e.target.files)}
+            className="hidden"
+          />
         </CardContent>
       </Card>
 
+      {/* File List */}
       {files.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-gray-700">Selected Files:</h4>
+          <h4 className="text-sm font-medium text-gray-900">
+            Uploaded Files ({files.length})
+          </h4>
           {files.map((file, index) => (
-            <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-              <div className="flex items-center">
-                <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+            <Card key={index} className="border border-gray-200">
+              <CardContent className="flex items-center justify-between p-3">
+                <div className="flex items-center space-x-3">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Button
-                onClick={() => removeFile(index)}
-                variant="ghost"
-                size="sm"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

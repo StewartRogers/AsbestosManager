@@ -36,12 +36,10 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'rejected'
 ]);
 
-// License type enum
-export const licenseTypeEnum = pgEnum('license_type', [
-  'general',
-  'demolition',
-  'inspection',
-  'removal'
+// Application type enum
+export const applicationTypeEnum = pgEnum('application_type', [
+  'new_application',
+  'renewal_application'
 ]);
 
 // Users table (required for Replit Auth)
@@ -59,18 +57,13 @@ export const users = pgTable("users", {
 // Applications table
 export const applications = pgTable("applications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationRefNumber: varchar("application_ref_number").unique(),
   userId: varchar("user_id").notNull().references(() => users.id),
-  companyName: text("company_name").notNull(),
-  businessRegistrationNumber: text("business_registration_number"),
-  primaryContactName: text("primary_contact_name").notNull(),
-  contactPhone: text("contact_phone").notNull(),
-  email: varchar("email").notNull(),
-  licenseType: licenseTypeEnum("license_type").notNull(),
-  streetAddress: text("street_address").notNull(),
-  city: text("city").notNull(),
-  state: text("state").notNull(),
-  zipCode: text("zip_code").notNull(),
-  previousExperience: text("previous_experience"),
+  applicationType: applicationTypeEnum("application_type").notNull(),
+  numberOfWorkers: text("number_of_workers").notNull(),
+  numberOfCertifiedWorkers: text("number_of_certified_workers").notNull(),
+  ownerContactInfo: text("owner_contact_info").notNull(),
+  asbestosServicesDescription: text("asbestos_services_description").notNull(),
   status: applicationStatusEnum("status").notNull().default('draft'),
   reviewComments: text("review_comments"),
   reviewedAt: timestamp("reviewed_at"),
@@ -91,6 +84,46 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Application Triaging Checklist table
+export const triagingChecklists = pgTable("triaging_checklists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  applicationId: varchar("application_id").notNull().references(() => applications.id),
+  // Section 1 - Decision Fields
+  dateOfDecision: timestamp("date_of_decision"),
+  decision: text("decision"),
+  preparedBy: text("prepared_by"),
+  jobTitle: text("job_title"),
+  // Section 2 - Employer Information
+  employerLegalName: text("employer_legal_name"),
+  employerTradeName: text("employer_trade_name"),
+  employerId: text("employer_id"),
+  activeStatus: boolean("active_status"),
+  accountCoverage: text("account_coverage"),
+  firmType: text("firm_type"),
+  employerStartDate: timestamp("employer_start_date"),
+  classificationUnits: text("classification_units"),
+  employerCuStartDate: timestamp("employer_cu_start_date"),
+  overdueBalance: text("overdue_balance"),
+  currentAccountBalance: text("current_account_balance"),
+  // Section 3 - Review Checklist
+  bcCompanySummary: boolean("bc_company_summary"),
+  isApplicantInScope: boolean("is_applicant_in_scope"),
+  classificationUnitRelated: boolean("classification_unit_related"),
+  reviewAmountsOwing: boolean("review_amounts_owing"),
+  reviewNumberOfWorkers: boolean("review_number_of_workers"),
+  reviewCertifiedWorkers: boolean("review_certified_workers"),
+  latScreenCapture: boolean("lat_screen_capture"),
+  reviewLatEscalation: boolean("review_lat_escalation"),
+  reviewInjunctionViolations: boolean("review_injunction_violations"),
+  reviewReferralsFromPfs: boolean("review_referrals_from_pfs"),
+  reviewRenewalsConsistency: boolean("review_renewals_consistency"),
+  reviewAssociatedFirms: boolean("review_associated_firms"),
+  hasNophInformation: boolean("has_noph_information"),
+  transportAcms: boolean("transport_acms"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   applications: many(applications),
@@ -108,11 +141,19 @@ export const applicationsRelations = relations(applications, ({ one, many }) => 
     relationName: "reviewer",
   }),
   documents: many(documents),
+  triagingChecklist: one(triagingChecklists),
 }));
 
 export const documentsRelations = relations(documents, ({ one }) => ({
   application: one(applications, {
     fields: [documents.applicationId],
+    references: [applications.id],
+  }),
+}));
+
+export const triagingChecklistsRelations = relations(triagingChecklists, ({ one }) => ({
+  application: one(applications, {
+    fields: [triagingChecklists.applicationId],
     references: [applications.id],
   }),
 }));
@@ -126,6 +167,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
+  applicationRefNumber: true,
   userId: true,
   status: true,
   reviewComments: true,
@@ -138,6 +180,12 @@ export const insertApplicationSchema = createInsertSchema(applications).omit({
 export const insertDocumentSchema = createInsertSchema(documents).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertTriagingChecklistSchema = createInsertSchema(triagingChecklists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const updateApplicationStatusSchema = z.object({
@@ -154,6 +202,9 @@ export type ApplicationWithDetails = Application & {
   user: User;
   documents: Document[];
   reviewer?: User;
+  triagingChecklist?: TriagingChecklist;
 };
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type Document = typeof documents.$inferSelect;
+export type InsertTriagingChecklist = z.infer<typeof insertTriagingChecklistSchema>;
+export type TriagingChecklist = typeof triagingChecklists.$inferSelect;

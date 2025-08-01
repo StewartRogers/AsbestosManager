@@ -1,6 +1,6 @@
 # Overview
 
-This is an Asbestos License Management System (ALMS) - a full-stack web application that streamlines the submission, review, and management of asbestos license applications. The system serves two main user types: employers who submit license applications and administrators who review and approve them. The application provides a comprehensive digital platform for managing the entire asbestos licensing workflow, from initial application submission through final approval or rejection.
+This is an Asbestos License Management System (ALMS) - a comprehensive web application for managing asbestos license applications with two distinct user workflows: Employer submission and Administrator review. The system includes database integration, user authentication, document upload capabilities, application status tracking, triaging checklist functionality, and role-based access control. Updated January 2025 to meet comprehensive requirements including auto-generated application reference numbers, triaging checklist for administrative review, and dual authentication flows.
 
 # User Preferences
 
@@ -29,10 +29,11 @@ The server-side follows a RESTful API design pattern:
 ## Database Design
 PostgreSQL database with Drizzle ORM for type-safe database operations:
 - **Users Table**: Stores user profiles with role-based access (employer/administrator)
-- **Applications Table**: Core entity storing license application data with status tracking
+- **Applications Table**: Core entity with auto-generated reference numbers, application type (new/renewal), workforce information, owner contact details, and asbestos services description
 - **Documents Table**: File metadata and references for uploaded application documents
+- **Triaging Checklists Table**: Comprehensive administrative review checklist with decision fields, employer information, and review criteria
 - **Sessions Table**: Secure session storage for authentication state
-- **Enums**: Strongly-typed enums for application status, license types, and user roles
+- **Enums**: Strongly-typed enums for application status, application types, and user roles
 
 ## Authentication & Authorization
 Role-based access control system:
@@ -49,10 +50,20 @@ Secure document handling system:
 
 ## API Design
 RESTful endpoints organized by resource:
-- **Authentication Routes**: Login, logout, and user profile management
-- **Application Routes**: CRUD operations with status management workflow
+- **Authentication Routes**: Login, logout, and user profile management with dual sign-in flows
+- **Application Routes**: CRUD operations with auto-generated reference numbers and new schema fields
 - **Document Routes**: File upload and retrieval with application association
+- **Triaging Checklist Routes**: Administrative review checklist management
 - **Statistics Routes**: Dashboard metrics for both user types
+
+## Recent Changes (January 2025)
+- Updated application schema to match comprehensive requirements
+- Added application reference number auto-generation (ALM-XXXXXXXX-XXXX format)
+- Implemented triaging checklist functionality for administrators
+- Updated landing page with separate employer and admin sign-in options
+- Created new application form with required fields: application type, workforce information, owner contact details, services description
+- Added comprehensive triaging checklist with three sections: Decision Fields, Employer Information, Review Checklist
+- Updated database schema and API endpoints to support new functionality
 
 # External Dependencies
 

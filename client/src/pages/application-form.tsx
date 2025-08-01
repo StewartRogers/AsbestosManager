@@ -15,24 +15,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, Save, Send } from "lucide-react";
 
 const applicationSchema = z.object({
-  companyName: z.string().min(1, "Company name is required"),
-  businessRegistrationNumber: z.string().optional(),
-  primaryContactName: z.string().min(1, "Primary contact name is required"),
-  contactPhone: z.string().min(1, "Contact phone is required"),
-  email: z.string().email("Valid email is required"),
-  licenseType: z.enum(["general", "demolition", "inspection", "removal"], {
-    required_error: "Please select a license type",
+  applicationType: z.enum(["new_application", "renewal_application"], {
+    required_error: "Please select an application type",
   }),
-  streetAddress: z.string().min(1, "Street address is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  zipCode: z.string().min(1, "ZIP code is required"),
-  previousExperience: z.string().optional(),
+  numberOfWorkers: z.string().min(1, "Number of workers is required"),
+  numberOfCertifiedWorkers: z.string().min(1, "Number of certified workers is required"),
+  ownerContactInfo: z.string().min(1, "Owner contact information is required"),
+  asbestosServicesDescription: z.string().min(1, "Description of asbestos services is required"),
   agreeToTerms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),
@@ -65,16 +59,10 @@ export default function ApplicationForm() {
   const form = useForm<ApplicationFormData>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      companyName: "",
-      businessRegistrationNumber: "",
-      primaryContactName: "",
-      contactPhone: "",
-      email: "",
-      streetAddress: "",
-      city: "",
-      state: "",
-      zipCode: "",
-      previousExperience: "",
+      numberOfWorkers: "",
+      numberOfCertifiedWorkers: "",
+      ownerContactInfo: "",
+      asbestosServicesDescription: "",
       agreeToTerms: false,
     },
   });
@@ -91,7 +79,7 @@ export default function ApplicationForm() {
         uploadedFiles.forEach((file) => {
           formData.append("documents", file);
         });
-        formData.append("documentType", "insurance");
+        formData.append("documentType", "supporting");
 
         await apiRequest("POST", `/api/applications/${application.id}/documents`, formData);
       }
@@ -101,7 +89,7 @@ export default function ApplicationForm() {
       
       toast({
         title: "Application Submitted",
-        description: "Your application has been submitted for review.",
+        description: `Your application has been submitted for review. Reference Number: ${application.applicationRefNumber}`,
       });
       setLocation("/dashboard");
     },
@@ -195,7 +183,7 @@ export default function ApplicationForm() {
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h2 className="text-xl font-semibold text-gray-900">New Application</h2>
+            <h2 className="text-xl font-semibold text-gray-900">New Asbestos License Application</h2>
           </div>
         </header>
 
@@ -221,139 +209,60 @@ export default function ApplicationForm() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 
-                {/* Company Information */}
+                {/* Application Type */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Company Information</CardTitle>
+                    <CardTitle>Application Type</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="companyName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Company Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter company name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="businessRegistrationNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Business Registration Number</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter registration number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="primaryContactName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Primary Contact Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter contact name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="contactPhone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Contact Phone *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="(555) 123-4567" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email Address *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="email@company.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="licenseType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>License Type *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select license type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="general">General Asbestos License</SelectItem>
-                                <SelectItem value="demolition">Demolition License</SelectItem>
-                                <SelectItem value="inspection">Inspection License</SelectItem>
-                                <SelectItem value="removal">Removal License</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Address Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Business Address</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent>
                     <FormField
                       control={form.control}
-                      name="streetAddress"
+                      name="applicationType"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Street Address *</FormLabel>
+                        <FormItem className="space-y-3">
+                          <FormLabel>Select Application Type *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter street address" {...field} />
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="new_application" id="new_application" />
+                                <label htmlFor="new_application" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  New Application
+                                </label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="renewal_application" id="renewal_application" />
+                                <label htmlFor="renewal_application" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Renewal Application
+                                </label>
+                              </div>
+                            </RadioGroup>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  </CardContent>
+                </Card>
+
+                {/* Workforce Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Workforce Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="city"
+                        name="numberOfWorkers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>City *</FormLabel>
+                            <FormLabel>Number of Workers at the Firm *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter city" {...field} />
+                              <Input type="number" placeholder="Enter number of workers" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -362,26 +271,12 @@ export default function ApplicationForm() {
                       
                       <FormField
                         control={form.control}
-                        name="state"
+                        name="numberOfCertifiedWorkers"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>State *</FormLabel>
+                            <FormLabel>Number of Workers with Asbestos Abatement Certificates *</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter state" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="zipCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>ZIP Code *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="12345" {...field} />
+                              <Input type="number" placeholder="Enter number of certified workers" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -391,36 +286,23 @@ export default function ApplicationForm() {
                   </CardContent>
                 </Card>
 
-                {/* Document Upload */}
+                {/* Contact Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Required Documents</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <FileUpload
-                      onFilesChange={setUploadedFiles}
-                      accept=".pdf,.doc,.docx"
-                      maxSize={10 * 1024 * 1024}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Additional Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
+                    <CardTitle>Owner Contact Information</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <FormField
                       control={form.control}
-                      name="previousExperience"
+                      name="ownerContactInfo"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Previous Experience with Asbestos Work</FormLabel>
+                          <FormLabel>Owner Contact Information *</FormLabel>
                           <FormControl>
                             <Textarea 
-                              placeholder="Describe any previous experience with asbestos-related work..."
-                              {...field}
+                              placeholder="Include name, phone number, email address, and mailing address" 
+                              rows={4}
+                              {...field} 
                             />
                           </FormControl>
                           <FormMessage />
@@ -430,9 +312,55 @@ export default function ApplicationForm() {
                   </CardContent>
                 </Card>
 
+                {/* Services Description */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Services Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={form.control}
+                      name="asbestosServicesDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description of Asbestos Services Provided *</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Provide a detailed description of the asbestos-related services your firm provides (e.g., inspection, abatement, removal, etc.)" 
+                              rows={6}
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Document Upload */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Supporting Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Upload any supporting documents such as insurance certificates, training records, or other relevant documentation.
+                    </p>
+                    <FileUpload
+                      onFilesChange={setUploadedFiles}
+                      accept=".pdf,.doc,.docx"
+                      maxSize={10 * 1024 * 1024}
+                    />
+                  </CardContent>
+                </Card>
+
                 {/* Terms and Conditions */}
                 <Card>
-                  <CardContent className="p-6">
+                  <CardHeader>
+                    <CardTitle>Terms and Conditions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <FormField
                       control={form.control}
                       name="agreeToTerms"
@@ -445,20 +373,22 @@ export default function ApplicationForm() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel className="text-sm">
-                              I certify that the information provided in this application is true and accurate to the best of my knowledge. 
-                              I understand that providing false information may result in denial of the license application and may be subject to legal penalties.
-                              I agree to comply with all applicable federal, state, and local regulations regarding asbestos handling and disposal.
+                            <FormLabel>
+                              I agree to the terms and conditions *
                             </FormLabel>
-                            <FormMessage />
+                            <p className="text-sm text-gray-600">
+                              By checking this box, I certify that all information provided is true and accurate to the best of my knowledge. 
+                              I understand that providing false information may result in the denial of this application.
+                            </p>
                           </div>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   </CardContent>
                 </Card>
 
-                {/* Form Actions */}
+                {/* Action Buttons */}
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row gap-4 justify-end">
