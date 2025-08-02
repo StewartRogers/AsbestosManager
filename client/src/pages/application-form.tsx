@@ -25,9 +25,12 @@ const applicationSchema = z.object({
   }),
   numberOfWorkers: z.string().min(1, "Number of workers is required"),
   numberOfCertifiedWorkers: z.string().min(1, "Number of certified workers is required"),
-  ownerContactInfo: z.string().min(1, "Owner contact information is required"),
+  ownerName: z.string().min(1, "Owner name is required"),
+  ownerEmail: z.string().email("Invalid email address"),
+  ownerPhone: z.string().min(1, "Owner phone is required"),
+  ownerBusinessAddress: z.string().min(1, "Business address is required"),
   asbestosServicesDescription: z.string().min(1, "Description of asbestos services is required"),
-  agreeToTerms: z.boolean().refine((val) => val === true, {
+  agreeToTerms: z.boolean().refine((val: boolean) => val === true, {
     message: "You must agree to the terms and conditions",
   }),
 });
@@ -61,7 +64,10 @@ export default function ApplicationForm() {
     defaultValues: {
       numberOfWorkers: "",
       numberOfCertifiedWorkers: "",
-      ownerContactInfo: "",
+      ownerName: "",
+      ownerEmail: "",
+      ownerPhone: "",
+      ownerBusinessAddress: "",
       asbestosServicesDescription: "",
       agreeToTerms: false,
     },
@@ -72,11 +78,11 @@ export default function ApplicationForm() {
       const response = await apiRequest("POST", "/api/applications", data);
       return response.json();
     },
-    onSuccess: async (application) => {
+    onSuccess: async (application: any) => {
       // Upload documents if any
       if (uploadedFiles.length > 0) {
         const formData = new FormData();
-        uploadedFiles.forEach((file) => {
+        uploadedFiles.forEach((file: File) => {
           formData.append("documents", file);
         });
         formData.append("documentType", "supporting");
@@ -93,8 +99,8 @@ export default function ApplicationForm() {
       });
       setLocation("/dashboard");
     },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
+    onError: (error: unknown) => {
+      if (error instanceof Error && isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -128,8 +134,8 @@ export default function ApplicationForm() {
         description: "Your application has been saved as a draft.",
       });
     },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
+    onError: (error: unknown) => {
+      if (error instanceof Error && isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -291,24 +297,61 @@ export default function ApplicationForm() {
                   <CardHeader>
                     <CardTitle>Owner Contact Information</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <FormField
-                      control={form.control}
-                      name="ownerContactInfo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Owner Contact Information *</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Include name, phone number, email address, and mailing address" 
-                              rows={4}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="ownerName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Owner Name *</FormLabel>
+                            <FormControl>
+                              <Input type="text" placeholder="Enter owner's full name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="ownerEmail"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Owner Email *</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="Enter owner's email address" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="ownerPhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Owner Phone *</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="Enter owner's phone number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="ownerBusinessAddress"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Address *</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Enter business address" rows={3} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
 
