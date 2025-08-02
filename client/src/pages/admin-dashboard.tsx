@@ -1,6 +1,34 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+
+type AdminUser = {
+  role: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string;
+};
+
+type AdminStats = {
+  pending: number;
+  processedToday: number;
+  overdue: number;
+  thisWeek: number;
+};
+
+type Application = {
+  id: string;
+  status: string;
+  licenseType: string;
+  companyName: string;
+  primaryContactName: string;
+  createdAt: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+  };
+  [key: string]: any;
+};
 import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/sidebar";
 import StatsCard from "@/components/stats-card";
@@ -13,7 +41,7 @@ import { Inbox, CheckSquare, AlertTriangle, Calendar, Search } from "lucide-reac
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth() as { user: AdminUser; isAuthenticated: boolean; isLoading: boolean };
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -45,12 +73,12 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ["/api/stats"],
     retry: false,
   });
 
-  const { data: applications, isLoading: applicationsLoading } = useQuery({
+  const { data: applications, isLoading: applicationsLoading } = useQuery<Application[]>({
     queryKey: ["/api/applications", { status: statusFilter, licenseType: typeFilter, search: searchTerm }],
     retry: false,
   });
@@ -77,7 +105,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const pendingApplications = applications?.filter((app: any) => 
+  const pendingApplications = applications?.filter((app) => 
     app.status === 'submitted' || app.status === 'under_review'
   ) || [];
 
