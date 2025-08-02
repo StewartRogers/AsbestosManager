@@ -1,0 +1,629 @@
+{
+  "id": "698dae9e-6ff7-483c-af7d-78770c0b0595",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.applications": {
+      "name": "applications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "application_ref_number": {
+          "name": "application_ref_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "application_type": {
+          "name": "application_type",
+          "type": "application_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_workers": {
+          "name": "number_of_workers",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "number_of_certified_workers": {
+          "name": "number_of_certified_workers",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_name": {
+          "name": "owner_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_email": {
+          "name": "owner_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_phone": {
+          "name": "owner_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "owner_business_address": {
+          "name": "owner_business_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "asbestos_services_description": {
+          "name": "asbestos_services_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "application_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "review_comments": {
+          "name": "review_comments",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_by": {
+          "name": "reviewed_by",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "applications_user_id_users_id_fk": {
+          "name": "applications_user_id_users_id_fk",
+          "tableFrom": "applications",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "applications_reviewed_by_users_id_fk": {
+          "name": "applications_reviewed_by_users_id_fk",
+          "tableFrom": "applications",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "applications_application_ref_number_unique": {
+          "name": "applications_application_ref_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "application_ref_number"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.documents": {
+      "name": "documents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_name": {
+          "name": "original_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "size": {
+          "name": "size",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "document_type": {
+          "name": "document_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "documents_application_id_applications_id_fk": {
+          "name": "documents_application_id_applications_id_fk",
+          "tableFrom": "documents",
+          "tableTo": "applications",
+          "columnsFrom": [
+            "application_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sessions": {
+      "name": "sessions",
+      "schema": "",
+      "columns": {
+        "sid": {
+          "name": "sid",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "sess": {
+          "name": "sess",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expire": {
+          "name": "expire",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "IDX_session_expire": {
+          "name": "IDX_session_expire",
+          "columns": [
+            {
+              "expression": "expire",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.triaging_checklists": {
+      "name": "triaging_checklists",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "application_id": {
+          "name": "application_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date_of_decision": {
+          "name": "date_of_decision",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "decision": {
+          "name": "decision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prepared_by": {
+          "name": "prepared_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_title": {
+          "name": "job_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_legal_name": {
+          "name": "employer_legal_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_trade_name": {
+          "name": "employer_trade_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_id": {
+          "name": "employer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active_status": {
+          "name": "active_status",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "account_coverage": {
+          "name": "account_coverage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "firm_type": {
+          "name": "firm_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_start_date": {
+          "name": "employer_start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "classification_units": {
+          "name": "classification_units",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "employer_cu_start_date": {
+          "name": "employer_cu_start_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "overdue_balance": {
+          "name": "overdue_balance",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_account_balance": {
+          "name": "current_account_balance",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bc_company_summary": {
+          "name": "bc_company_summary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_applicant_in_scope": {
+          "name": "is_applicant_in_scope",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "classification_unit_related": {
+          "name": "classification_unit_related",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_amounts_owing": {
+          "name": "review_amounts_owing",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_number_of_workers": {
+          "name": "review_number_of_workers",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_certified_workers": {
+          "name": "review_certified_workers",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lat_screen_capture": {
+          "name": "lat_screen_capture",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_lat_escalation": {
+          "name": "review_lat_escalation",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_injunction_violations": {
+          "name": "review_injunction_violations",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_referrals_from_pfs": {
+          "name": "review_referrals_from_pfs",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_renewals_consistency": {
+          "name": "review_renewals_consistency",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_associated_firms": {
+          "name": "review_associated_firms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_noph_information": {
+          "name": "has_noph_information",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "transport_acms": {
+          "name": "transport_acms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "triaging_checklists_application_id_applications_id_fk": {
+          "name": "triaging_checklists_application_id_applications_id_fk",
+          "tableFrom": "triaging_checklists",
+          "tableTo": "applications",
+          "columnsFrom": [
+            "application_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "profile_image_url": {
+          "name": "profile_image_url",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'employer'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.application_status": {
+      "name": "application_status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "submitted",
+        "under_review",
+        "approved",
+        "rejected"
+      ]
+    },
+    "public.application_type": {
+      "name": "application_type",
+      "schema": "public",
+      "values": [
+        "new_application",
+        "renewal_application"
+      ]
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "employer",
+        "administrator"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
