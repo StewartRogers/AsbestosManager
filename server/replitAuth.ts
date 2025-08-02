@@ -56,13 +56,16 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
+  role?: string
 ) {
+  const userRole = (role === 'administrator' || role === 'employer') ? role : 'employer';
   await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    role: userRole,
   });
 }
 
@@ -102,6 +105,12 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
+    // Store the role in session if provided
+    const role = req.query.role as string;
+    if (role && (role === 'employer' || role === 'administrator')) {
+      (req.session as any).pendingRole = role;
+    }
+    
     passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
@@ -109,9 +118,32 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+    passport.authenticate(`replitauth:${req.hostname}`, async (err: any, user: any) => {
+      if (err) {
+        console.error("Authentication error:", err);
+        return res.redirect("/api/login");
+      }
+      if (!user) {
+        return res.redirect("/api/login");
+      }
+      
+      // Handle role assignment after successful authentication
+      const pendingRole = (req.session as any)?.pendingRole;
+      if (pendingRole && (pendingRole === 'employer' || pendingRole === 'administrator')) {
+        const claims = user.claims;
+        if (claims) {
+          await upsertUser(claims, pendingRole);
+        }
+        delete (req.session as any).pendingRole;
+      }
+      
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error("Login error:", err);
+          return res.redirect("/api/login");
+        }
+        return res.redirect("/");
+      });
     })(req, res, next);
   });
 

@@ -18,16 +18,16 @@ export default function Landing() {
             </div>
             <div className="flex items-center space-x-4">
               <a
-                href="/api/login"
+                href="/api/login?role=administrator"
                 className="text-blue-600 hover:text-blue-800 font-medium text-sm"
               >
                 Admin Sign In
               </a>
               <Button 
-                onClick={() => window.location.href = '/api/login'}
+                onClick={() => window.location.href = '/api/login?role=employer'}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                Sign In
+                Employer Sign In
               </Button>
             </div>
           </div>
@@ -98,14 +98,14 @@ export default function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => window.location.href = '/api/login?role=employer'}
               size="lg"
               className="bg-blue-600 hover:bg-blue-700"
             >
               Employer Sign In
             </Button>
             <Button 
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => window.location.href = '/api/login?role=administrator'}
               size="lg"
               variant="outline"
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
