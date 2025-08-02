@@ -160,7 +160,7 @@ export default function AdminDashboard() {
                         <SelectValue placeholder="All Types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
+                        <SelectItem value="all">All Types</SelectItem>
                         <SelectItem value="general">General License</SelectItem>
                         <SelectItem value="demolition">Demolition</SelectItem>
                         <SelectItem value="inspection">Inspection</SelectItem>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                         <SelectValue placeholder="All Statuses" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="all">All Statuses</SelectItem>
                         <SelectItem value="submitted">Submitted</SelectItem>
                         <SelectItem value="under_review">Under Review</SelectItem>
                         <SelectItem value="approved">Approved</SelectItem>
